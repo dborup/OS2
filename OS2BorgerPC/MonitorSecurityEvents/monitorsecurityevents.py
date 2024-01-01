@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import requests
 from datetime import datetime, timedelta
 import logging
@@ -8,12 +9,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Configuration Variables
 api_token = 'Your_API_Token' # API token for authorization with the event system
 teams_webhook_url = 'Your_Teams_Webhook_URL' # Microsoft Teams webhook URL for notifications
-monitoring_rules = ['Nyt Keyboard Detect', 'Sudo', 'Detekter låst/udløbet bruger'] # List of monitoring rules to track
+monitoring_rules = ['Nyt Keyboard Detect', 'Sudo', 'Detekter låst/udløbet bruger']  # Monitoring rules
+days_back = 7  # Number of days to look back for events
 
-# Number of days back to fetch events
-days_back = 7  # Can be adjusted as needed
-
-# Function to reformat the timestamp
+# Function to reformat timestamps
 def reformat_timestamp(timestamp_str):
     formats = ['%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S']
     for fmt in formats:
@@ -26,7 +25,7 @@ def reformat_timestamp(timestamp_str):
     logging.error(f"Timestamp format error for {timestamp_str}")
     return timestamp_str
 
-# Date calculations for the API request
+# Date calculations for API requests
 current_date = datetime.now()
 days_ago = current_date - timedelta(days=days_back)
 formatted_days_ago = days_ago.strftime('%Y-%m-%d')
@@ -57,14 +56,14 @@ except requests.exceptions.Timeout as errt:
 except requests.exceptions.RequestException as err:
     logging.error(f"Error: {err}")
 
-# Check if 'items' key exists in the response
+# Check for 'items' in the response and filter them
 if 'items' in events_data:
     filtered_items = [(item['pc_name'], item['monitoring_rule'], item['occurred_time']) for item in events_data['items'] if item['monitoring_rule'] in monitoring_rules]
 else:
     logging.warning("The 'items' key was not found in the API response.")
     filtered_items = []
 
-# Proceed only if there are filtered items
+# Fetch computer details if there are filtered items
 if filtered_items:
     computers_url = 'https://os2borgerpc-admin.magenta.dk/api/system/computers'
     try:
@@ -78,6 +77,7 @@ if filtered_items:
 
     computers_dict = {computer['name']: computer for computer in computers_data}
 
+    # Function to format adaptive cards for Teams
     def format_adaptive_card(computer, rule, occurred_time):
         occurred_time_formatted = reformat_timestamp(occurred_time)
         report_title = f"{rule} - {occurred_time_formatted}"
@@ -89,6 +89,8 @@ if filtered_items:
         }
 
         if computer:
+            last_seen_formatted = reformat_timestamp(computer.get('last_seen', ''))
+
             ip_address = computer.get('ip_addresses', '')
             if isinstance(ip_address, list):
                 ip_address = ', '.join(ip_address)
@@ -96,13 +98,14 @@ if filtered_items:
             facts = [
                 {"title": "Name", "value": computer['name']},
                 {"title": "Location", "value": computer['location']},
-                {"title": "Last Seen", "value": occurred_time_formatted},
+                {"title": "Last Seen", "value": last_seen_formatted},
                 {"title": "IP", "value": ip_address}
             ]
             card["body"].append({"type": "FactSet", "facts": facts})
 
         return {"type": "message", "attachments": [{"contentType": "application/vnd.microsoft.card.adaptive", "content": card}]}
 
+    # Sending notifications to Teams
     for pc_name, rule, occurred_time in filtered_items:
         computer = computers_dict.get(pc_name)
         if computer:
