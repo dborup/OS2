@@ -2,15 +2,16 @@
 import requests
 from datetime import datetime, timedelta
 import logging
+import json  # Added for JSON functionality
 
 # Setup basic configuration for logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Configuration Variables
-api_token = 'Your_API_Token' # API token for authorization with the event system
-teams_webhook_url = 'Your_Teams_Webhook_URL' # Microsoft Teams webhook URL for notifications
-monitoring_rules = ['Nyt Keyboard Detect', 'Sudo', 'Detekter låst/udløbet bruger']  # Monitoring rules
-days_back = 7  # Number of days to look back for events
+api_token = 'Your_API_Token'  # Replace with your actual API token
+teams_webhook_url = 'Your_Teams_Webhook_URL'  # Replace with your Microsoft Teams webhook URL
+monitoring_rules = ['Nyt Keyboard Detect', 'Sudo', 'Detekter låst/udløbet bruger']
+days_back = 7
 
 # Function to reformat timestamps
 def reformat_timestamp(timestamp_str):
@@ -47,12 +48,6 @@ try:
     events_response.raise_for_status()
     events_data = events_response.json()
     logging.info("Successfully fetched system events.")
-except requests.exceptions.HTTPError as errh:
-    logging.error(f"HTTP Error: {errh}")
-except requests.exceptions.ConnectionError as errc:
-    logging.error(f"Error Connecting: {errc}")
-except requests.exceptions.Timeout as errt:
-    logging.error(f"Timeout Error: {errt}")
 except requests.exceptions.RequestException as err:
     logging.error(f"Error: {err}")
 
@@ -116,5 +111,12 @@ if filtered_items:
                 logging.info(f"Message sent successfully to Teams for {pc_name}.")
             except requests.exceptions.RequestException as e:
                 logging.error(f"Error sending message to Teams for {pc_name}: {e}")
+
+    # Save the filtered data to a JSON file
+    json_file_path = 'filtered_events.json'  # Set the path for the JSON file
+    with open(json_file_path, 'w') as file:
+        json.dump(filtered_items, file, indent=4)
+    logging.info(f"Filtered events data saved to {json_file_path}")
+
 else:
     logging.info("No relevant events to report.")
