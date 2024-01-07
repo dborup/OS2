@@ -1,3 +1,4 @@
+# BERFORE MAKING CHANGES TO summary
 from flask import Flask, render_template, jsonify, request
 import requests
 from datetime import datetime, timedelta
@@ -11,7 +12,7 @@ with open('geocoded_data.json', 'r') as json_file:
 
 API_HEADERS = {
     'accept': 'application/json',
-    'Authorization': 'Bearer Your_API_Here'
+    'Authorization': 'Bearer YOUR_API_HERE'
 }
 
 MONITORING_RULES = ["Nattjek for Computer Online Status", "Morgentjek for Online Status", "Detekter låst/udløbet bruger", "Nyt Keyboard Detect", "Sudo"]
@@ -24,11 +25,11 @@ def index():
 def get_filtered_computer_events():
     try:
         to_date = datetime.now()
-        from_date = to_date - timedelta(days=60)
+        from_date = to_date - timedelta(days=30)
         to_date_str = to_date.strftime('%Y-%m-%d')
         from_date_str = from_date.strftime('%Y-%m-%d')
 
-        events_url = f'https://os2borgerpc-admin.magenta.dk/api/system/events?from_date={from_date_str}&to_date={to_date_str}&status=NEW&limit=1000&offset=0'
+        events_url = f'https://os2borgerpc-admin.magenta.dk/api/system/events?from_date={from_date_str}&to_date={to_date_str}&status=NEW&limit=100&offset=0'
         events_response = requests.get(events_url, headers=API_HEADERS)
         events = events_response.json().get('items', [])
 
