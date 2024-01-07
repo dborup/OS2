@@ -1,4 +1,3 @@
-// Works with everything we wanted Sunday
 // Custom icons for each severity level
 var customIcons = {
     'Critical': new L.Icon({
@@ -22,7 +21,7 @@ var customIcons = {
 };
 
 // Initialize the Leaflet map centered on Aarhus, Denmark
-var cityMap = L.map('city-map').setView([56.1629, 10.2039], 19);
+var cityMap = L.map('city-map').setView([56.1629, 10.2039], 10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
@@ -96,3 +95,65 @@ function updateCityMapMarkers() {
 
 updateCityMapMarkers();
 setInterval(updateCityMapMarkers, 60000); // Update every 60 seconds
+
+// Add this code to your script.js file
+
+// Function to fetch and display event data
+function fetchAndDisplayEventData() {
+    fetch('/api/filtered_computer_events') // Replace with your API endpoint
+        .then(response => response.json())
+        .then(data => {
+            const eventListContent = document.getElementById('event-list-content');
+            eventListContent.innerHTML = ''; // Clear previous data
+
+            // Group events by location, event rule, and count
+            const eventsByLocation = {};
+
+            data.forEach(location => {
+                location.events.forEach(event => {
+                    const locationName = location.location;
+                    const rule = event.monitoring_rule;
+                    if (!eventsByLocation[locationName]) {
+                        eventsByLocation[locationName] = {};
+                    }
+                    if (!eventsByLocation[locationName][rule]) {
+                        eventsByLocation[locationName][rule] = 0;
+                    }
+                    eventsByLocation[locationName][rule]++;
+                });
+            });
+
+            // Loop through locations and their events to create HTML elements
+            for (const locationName in eventsByLocation) {
+                const locationData = eventsByLocation[locationName];
+
+                const locationDiv = document.createElement('div');
+                locationDiv.classList.add('location');
+
+                const locationHeader = document.createElement('h3');
+                locationHeader.textContent = `${locationName}`;
+                locationDiv.appendChild(locationHeader);
+
+                for (const rule in locationData) {
+                    const ruleCount = locationData[rule];
+
+                    const ruleDiv = document.createElement('div');
+                    ruleDiv.classList.add('event-rule');
+
+                    const ruleHeader = document.createElement('h4');
+                    ruleHeader.textContent = `${rule} Count: ${ruleCount}`;
+                    ruleDiv.appendChild(ruleHeader);
+
+                    locationDiv.appendChild(ruleDiv);
+                }
+
+                eventListContent.appendChild(locationDiv);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Call the fetchAndDisplayEventData function to populate the event list
+fetchAndDisplayEventData();
+// Update the event list every 60 seconds (adjust the interval as needed)
+setInterval(fetchAndDisplayEventData, 60000); // Update every 60 seconds
