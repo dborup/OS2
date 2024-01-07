@@ -9,9 +9,18 @@
 </head>
 <body>
 
-<div id="city-map" style="height: 400px;"></div>
+<div id="dashboard-container">
+    <div id="city-map"></div> <!-- Map container -->
+    <div id="event-list">
+        <div id="event-list-header">
+            <h2>Computer Events</h2>
+        </div>
+        <div id="event-list-content">
+            <!-- Event list content will be added here using JavaScript -->
+        </div>
+    </div>
+</div>
 
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
-
