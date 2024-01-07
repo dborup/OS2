@@ -37,6 +37,37 @@
         height: 300px; /* Smaller height for smaller screens */
     }
 }
+/* Add styles for the event list */
+#event-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#event-list-header {
+    margin-bottom: 10px;
+}
+
+#event-list-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.location {
+    width: 30%; /* Adjust the width as needed */
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Additional styles for location header (Location: ...) */
+.location h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
 
 /* Additional styles here if necessary */
-
